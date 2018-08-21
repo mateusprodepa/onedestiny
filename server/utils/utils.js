@@ -5,24 +5,48 @@ const db = require('../db/db')
 const QUERIES = require('../config/queries')
 const TABLES = require('../config/tables')
 
+function sortAnswer(type = "forgot") {
+  const forgot = [
+    "Acho que você esqueceu de alguma coisa !",
+    "Não esqueça disto aqui.",
+    "Está faltando alguma coisa bem aqui",
+    "Você olhou direito aqui ?",
+    "Tente preencher aqui dessa vez."
+  ]
+
+  const error = [
+    "Tem certeza disto ?",
+    "Ops, você inseriu algo errado aqui !",
+    "Tente outra vez",
+  ]
+
+  switch(type) {
+    case "forgot":
+      return forgot[Math.floor(Math.random() * forgot.length)];
+    case "error":
+      return error[Math.floor(Math.random() * error.length)];
+  }
+}
+
 module.exports = {
 
   validage_login_request: function(user, credentials) {
     let errors = {}
+
     if(!user) {
-      return errors = { ...errors, username: 'É este mesmo o seu nome de usuário?' }
+      errors = { ...errors, username: sortAnswer('error') }
     }
 
-    if(user.username.length === 0 || user.username === null || user.username === "") {
-      errors = { ...errors, username: "Não deixe seu usuário em branco" }
+    if(credentials.username === "") {
+      errors = { ...errors, username: sortAnswer('forgot') }
     }
 
     if(credentials.password.length === 0) {
-      errors = { ...errors, password: "Não deixe sua senha em branco" }
+      errors = { ...errors, password: sortAnswer('forgot') }
     }
 
-    if(!bcrypt.compareSync(credentials.password, user.senha)) {
-      errors = { ...errors, password: "Ops, você inseriu algo errado aqui!" }
+    if(user && user.senha && !bcrypt.compareSync(credentials.password, user.senha)) {
+      errors = { ...errors, password: sortAnswer('error') }
     }
 
     return errors
